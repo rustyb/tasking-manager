@@ -196,6 +196,7 @@ def add_api_endpoints(app):
         UserSearchAllAPI,
         UserUpdateAPI,
         UserContributionsAPI,
+        UserTasksAPI,
     )
     from server.api.validator_apis import (
         LockTasksForValidationAPI,
@@ -389,6 +390,7 @@ def add_api_endpoints(app):
         UserSetLevel, "/api/v1/user/<string:username>/set-level/<string:level>"
     )
     api.add_resource(UserAcceptLicense, "/api/v1/user/accept-license/<int:license_id>")
+    api.add_resource(UserTasksAPI, "/api/v1/user/tasks")
     api.add_resource(UserIdAPI, "/api/v1/user-id/<int:userid>")
     api.add_resource(UserContributionsAPI, "/api/v1/user-id/<int:userid>/contributions")
     api.add_resource(IntersectingTilesAPI, "/api/v1/grid/intersecting-tiles")
