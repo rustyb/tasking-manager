@@ -327,9 +327,9 @@ class ProjectsRestAPI(Resource):
                     campaignTag:
                         type: string
                         default: malaria
-                    organisationTag:
+                    organisation:
                         type: string
-                        default: red cross
+                        default: HOT
                     licenseId:
                         type: integer
                         default: 1
@@ -377,12 +377,12 @@ class ProjectsRestAPI(Resource):
             return {"Status": "Updated"}, 200
         except InvalidGeoJson as e:
             return {"Invalid GeoJson": str(e)}, 400
-        except NotFound:
-            return {"Error": "Project Not Found"}, 404
+        except NotFound as e:
+            return {"Error": str(e) or "Project Not Found"}, 404
         except ProjectAdminServiceError:
             return {"Error": "Unable to update project"}, 400
         except Exception as e:
-            error_msg = f"Project GET - unhandled error: {str(e)}"
+            error_msg = f"Project POST - unhandled error: {str(e)}"
             current_app.logger.critical(error_msg)
             return {"Error": "Unable to update project"}, 500
 
@@ -464,9 +464,9 @@ class ProjectsAllAPI(Resource):
               type: string
               default: ROADS,BUILDINGS
             - in: query
-              name: organisationTag
+              name: organisation
               type: string
-              default: red cross
+              default: HOT
             - in: query
               name: campaignTag
               type: string
@@ -497,8 +497,8 @@ class ProjectsAllAPI(Resource):
             search_dto = ProjectSearchDTO()
             search_dto.preferred_locale = request.environ.get("HTTP_ACCEPT_LANGUAGE")
             search_dto.mapper_level = request.args.get("mapperLevel")
-            search_dto.organisation_tag = request.args.get("organisationTag")
-            search_dto.campaign_tag = request.args.get("campaignTag")
+            search_dto.organisation = request.args.get("organisation")
+            search_dto.campaign = request.args.get("campaign")
             search_dto.page = (
                 int(request.args.get("page")) if request.args.get("page") else 1
             )

@@ -64,20 +64,20 @@ class ProjectActivityDTO(Model):
 class OrganizationStatsDTO(Model):
     def __init__(self, tup):
         super().__init__()
-        self.tag = tup[0]
+        self.organisation = tup[0]
         self.projects_created = tup[1]
 
-    tag = StringType()
+    organisation = StringType()
     projects_created = IntType(serialized_name="projectsCreated")
 
 
 class CampaignStatsDTO(Model):
     def __init__(self, tup):
         super().__init__()
-        self.tag = tup[0]
+        self.campaign = tup[0]
         self.projects_created = tup[1]
 
-    tag = StringType()
+    campaign = StringType()
     projects_created = IntType(serialized_name="projectsCreated")
 
 
@@ -99,8 +99,8 @@ class HomePageStatsDTO(Model):
     # total_area = FloatType(serialized_name='totalArea')
     total_mapped_area = FloatType(serialized_name="totalMappedArea")
     total_validated_area = FloatType(serialized_name="totalValidatedArea")
-    total_organizations = IntType(serialized_name="totalOrganizations")
+    total_organisations = IntType(serialized_name="totalOrganizations")
     total_campaigns = IntType(serialized_name="totalCampaigns")
     # avg_completion_time = IntType(serialized_name='averageCompletionTime')
-    organizations = ListType(ModelType(OrganizationStatsDTO))
+    organisations = ListType(ModelType(OrganizationStatsDTO))
     campaigns = ListType(ModelType(CampaignStatsDTO))
