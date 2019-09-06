@@ -436,6 +436,11 @@ class TasksAsJson(Resource):
               type: boolean
               description: Set to true if file download preferred
               default: True
+            - in: query
+              name: sort_by
+              type:  string
+              description: Field name to sort tasks by
+              default:
         responses:
             200:
                 description: Project found
@@ -453,7 +458,17 @@ class TasksAsJson(Resource):
                 else True
             )
 
-            tasks = ProjectService.get_project_tasks(int(project_id))
+            sort_by = request.args.get("sort_by")
+
+            if not sort_by in [
+                "building_area_diff",
+                "-building_area_diff",
+                "last_updated",
+                "-last_updated",
+            ]:
+                sort_by = None
+
+            tasks = ProjectService.get_project_tasks(int(project_id), sort_by)
 
             if as_file:
                 tasks = str(tasks).encode("utf-8")

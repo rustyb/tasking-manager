@@ -4,7 +4,8 @@ import geojson
 import json
 from enum import Enum
 from flask import current_app
-from sqlalchemy import text
+from sqlalchemy.types import Float, Text
+from sqlalchemy import text, desc, cast, func
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from sqlalchemy.orm.session import make_transient
 from geoalchemy2 import Geometry
@@ -796,25 +797,66 @@ class Task(db.Model):
         self.update()
 
     @staticmethod
-    def get_tasks_as_geojson_feature_collection(project_id):
+    def get_tasks_as_geojson_feature_collection(project_id, sort_by=None):
         """
         Creates a geoJson.FeatureCollection object for all tasks related to the supplied project ID
         :param project_id: Owning project ID
         :return: geojson.FeatureCollection
         """
-        project_tasks = (
-            db.session.query(
-                Task.id,
-                Task.x,
-                Task.y,
-                Task.zoom,
-                Task.is_square,
-                Task.task_status,
-                Task.geometry.ST_AsGeoJSON().label("geojson"),
+        subquery = (
+            db.session.query(func.max(TaskHistory.action_date))
+            .filter(
+                Task.id == TaskHistory.task_id,
+                Task.project_id == TaskHistory.project_id,
             )
-            .filter(Task.project_id == project_id)
-            .all()
+            .correlate(Task)
+            .group_by(Task.id)
+            .label("update_date")
         )
+        query = db.session.query(
+            Task.id,
+            Task.x,
+            Task.y,
+            Task.zoom,
+            Task.is_square,
+            Task.task_status,
+            Task.geometry.ST_AsGeoJSON().label("geojson"),
+            subquery,
+        )
+
+        if sort_by in ["building_area_diff", "-building_area_diff"]:
+            query = query.outerjoin(TaskAnnotation).filter(
+                Task.project_id == project_id
+            )
+            if sort_by.startswith("-"):
+                query = query.order_by(
+                    desc(
+                        cast(
+                            cast(TaskAnnotation.properties["building_area_diff"], Text),
+                            Float,
+                        )
+                    )
+                )
+            else:
+                query = query.order_by(
+                    cast(
+                        cast(TaskAnnotation.properties["building_area_diff"], Text),
+                        Float,
+                    )
+                )
+        elif sort_by in ["last_updated", "-last_updated"]:
+            if sort_by.startswith("-"):
+                query = query.filter(Task.project_id == project_id).order_by(
+                    desc("update_date")
+                )
+            else:
+                query = query.filter(Task.project_id == project_id).order_by(
+                    "update_date"
+                )
+        else:
+            query = query.filter(Task.project_id == project_id)
+
+        project_tasks = query.all()
 
         tasks_features = []
         for task in project_tasks:
