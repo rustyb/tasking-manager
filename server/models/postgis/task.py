@@ -797,10 +797,14 @@ class Task(db.Model):
         self.update()
 
     @staticmethod
-    def get_tasks_as_geojson_feature_collection(project_id, sort_by=None):
+    def get_tasks_as_geojson_feature_collection(
+        project_id, sort_by: str = None, status: int = None
+    ):
         """
         Creates a geoJson.FeatureCollection object for all tasks related to the supplied project ID
         :param project_id: Owning project ID
+        :sort_by: sorting option: available values update_date and building_area_diff
+        :status: task status id to filter by
         :return: geojson.FeatureCollection
         """
         subquery = (
@@ -824,10 +828,13 @@ class Task(db.Model):
             subquery,
         )
 
+        filters = [Task.project_id == project_id]
+
+        if status:
+            filters.append(Task.task_status == status)
+
         if sort_by in ["building_area_diff", "-building_area_diff"]:
-            query = query.outerjoin(TaskAnnotation).filter(
-                Task.project_id == project_id
-            )
+            query = query.outerjoin(TaskAnnotation).filter(*filters)
             if sort_by.startswith("-"):
                 query = query.order_by(
                     desc(
@@ -846,15 +853,11 @@ class Task(db.Model):
                 )
         elif sort_by in ["last_updated", "-last_updated"]:
             if sort_by.startswith("-"):
-                query = query.filter(Task.project_id == project_id).order_by(
-                    desc("update_date")
-                )
+                query = query.filter(*filters).order_by(desc("update_date"))
             else:
-                query = query.filter(Task.project_id == project_id).order_by(
-                    "update_date"
-                )
+                query = query.filter(*filters).order_by("update_date")
         else:
-            query = query.filter(Task.project_id == project_id)
+            query = query.filter(*filters)
 
         project_tasks = query.all()
 

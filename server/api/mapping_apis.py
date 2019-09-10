@@ -17,6 +17,8 @@ from server.services.mapping_service import (
     NotFound,
     UserLicenseError,
 )
+
+from server.models.postgis.statuses import TaskStatus
 from server.services.project_service import ProjectService, ProjectServiceError
 from server.services.users.authentication_service import token_auth, tm, verify_token
 from server.services.users.user_service import UserService
@@ -437,6 +439,10 @@ class TasksAsJson(Resource):
               description: Set to true if file download preferred
               default: True
             - in: query
+              name: status
+              type: string
+              description: task status to filter by
+            - in: query
               name: sort_by
               type:  string
               description: Field name to sort tasks by
@@ -459,6 +465,12 @@ class TasksAsJson(Resource):
             )
 
             sort_by = request.args.get("sort_by")
+            status = request.args.get("status")
+            if status:
+                try:
+                    status = TaskStatus[status.upper()].value
+                except KeyError:
+                    status = None
 
             if not sort_by in [
                 "building_area_diff",
@@ -468,7 +480,7 @@ class TasksAsJson(Resource):
             ]:
                 sort_by = None
 
-            tasks = ProjectService.get_project_tasks(int(project_id), sort_by)
+            tasks = ProjectService.get_project_tasks(int(project_id), sort_by, status)
 
             if as_file:
                 tasks = str(tasks).encode("utf-8")
