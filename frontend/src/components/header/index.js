@@ -11,6 +11,8 @@ import { LinkIcon } from '../svgIcons';
 import { Dropdown } from '../dropdown';
 import { Button } from '../button';
 import { BurgerMenu } from './burgerMenu';
+import { SignUp } from './signUp';
+import { UpdateEmail } from './updateEmail';
 import { UserAvatar } from '../user/avatar';
 import { logout } from '../../store/actions/auth';
 import { setLocale } from '../../store/actions/userPreferences';
@@ -56,9 +58,12 @@ const AuthButtons = props => {
           <FormattedMessage {...messages.logIn} />
         </Button>
       </a>
-      <Button className={signUpStyle}>
-        <FormattedMessage {...messages.signUp} />
-      </Button>
+      <Popup trigger={<Button className={signUpStyle}><FormattedMessage {...messages.signUp} /></Button>}
+        modal
+        closeOnDocumentClick
+      >
+        <SignUp />
+      </Popup>
     </>
   );
 };
@@ -169,6 +174,19 @@ class Header extends React.Component {
     }
   };
 
+  checkUserEmail() {
+    return this.props.username && !this.props.email ? (
+        <Popup modal open closeOnDocumentClick>
+        {close => (
+            <div style={{textAlign: 'right'}}>
+              <a style={{fontSize: '2em', marginRight: '0.5em'}} onClick={close}>&times;</a>
+              <UpdateEmail/>
+            </div>
+          )}
+        </Popup>
+      ) : null;
+  }
+
   getActiveLanguageNames() {
     const locales = [
       this.props.userPreferences.locale,
@@ -218,7 +236,9 @@ class Header extends React.Component {
 
   render() {
     return (
+      // Validate that user has set is email.
       <header className="w-100 bb b--grey-light">
+        {this.checkUserEmail()}
         <div className="cf ph2 red pt3 pb2 bb b--grey-light">
           <div className="fl w-50">
             <span className="barlow-condensed f5 ml2 ">
@@ -264,6 +284,7 @@ const mapStateToProps = state => ({
   userPreferences: state.preferences,
   username: state.auth.getIn(['userDetails', 'username']),
   token: state.auth.get('token'),
+  email: state.auth.getIn(['userDetails', 'emailAddress']),
 });
 
 Header = connect(
