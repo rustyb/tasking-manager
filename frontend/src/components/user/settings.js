@@ -14,12 +14,12 @@ import { INTERMEDIATE_LEVEL_COUNT, ADVANCED_LEVEL_COUNT } from '../../config';
 
 function NextMappingLevel({ changesetsCount }: Object) {
   changesetsCount = Number(changesetsCount);
-  let changesetsLeft, nextLevel;
+  let nextLevelThreshold, nextLevel;
   if (changesetsCount < INTERMEDIATE_LEVEL_COUNT) {
-    changesetsLeft = <FormattedNumber value={INTERMEDIATE_LEVEL_COUNT - changesetsCount} />;
+    nextLevelThreshold = <FormattedNumber value={INTERMEDIATE_LEVEL_COUNT} />;
     nextLevel = <MappingLevelMessage level="INTERMEDIATE" className="ttl " />;
   } else if (changesetsCount < ADVANCED_LEVEL_COUNT) {
-    changesetsLeft = <FormattedNumber value={ADVANCED_LEVEL_COUNT - changesetsCount} />;
+    nextLevelThreshold = <FormattedNumber value={ADVANCED_LEVEL_COUNT} />;
     nextLevel = <MappingLevelMessage level="ADVANCED" className="ttl" />;
   }
   if (nextLevel) {
@@ -29,7 +29,12 @@ function NextMappingLevel({ changesetsCount }: Object) {
           {...messages.nextLevel}
           className="blue-grey"
           values={{
-            number: <span className="blue-dark f4 fw6">{changesetsLeft}</span>,
+            changesets: (
+              <span className="blue-dark f4 fw6">
+                <FormattedNumber value={changesetsCount} />
+              </span>
+            ),
+            nextLevelThreshold: <span className="blue-dark f4">{nextLevelThreshold}</span>,
             level: nextLevel,
           }}
         />
@@ -49,19 +54,11 @@ class UserTopBar extends React.Component {
   componentDidUpdate(prevProps) {
     if (
       this.props.userDetails &&
-      this.props.userDetails.mappingLevel !== 'ADVANCED' &&
       this.props.userDetails.username &&
-      prevProps.userDetails.username !== this.props.userDetails.username
+      (prevProps.userDetails.username !== this.props.userDetails.username ||
+        (this.state.finishedLoadingData === false || this.state.changesetsCount === 0))
     ) {
       this.getOSMDetails();
-    }
-    if (
-      this.props.userDetails &&
-      this.props.userDetails.mappingLevel === 'ADVANCED' &&
-      this.props.userDetails.username &&
-      prevProps.userDetails.username !== this.props.userDetails.username
-    ) {
-      this.setState({ finishedLoadingData: true });
     }
   }
 
@@ -71,11 +68,10 @@ class UserTopBar extends React.Component {
 
   getOSMDetails = event => {
     this.osmDetailsPromise = cancelablePromise(
-      fetchLocalJSONAPI(`user/${this.props.userDetails.username}/osm-details`),
+      fetchLocalJSONAPI(`users/${this.props.userDetails.username}/openstreetmap/`),
     );
     this.osmDetailsPromise.promise
       .then(r => {
-        console.log('ok');
         this.setState({
           changesetsCount: r.changesetCount,
           finishedLoadingData: true,

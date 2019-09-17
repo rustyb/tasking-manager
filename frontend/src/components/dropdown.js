@@ -44,7 +44,7 @@ class DropdownContent extends React.PureComponent {
   };
   render() {
     return (
-      <div className="di tl mt1 ba b--grey-light br1 absolute shadow-1 z-1 flex flex-column">
+      <div className="di tl mt1 ba b--grey-light br1 absolute shadow-1 z-3 flex flex-column">
         {this.props.options.map((i, k) => (
           <span
             key={k}
@@ -127,6 +127,7 @@ export class _Dropdown extends React.PureComponent {
     });
   };
   isActive = (obj: Object) => {
+    //eslint-disable-next-line
     for (let v of this.props.value) {
       if (v.label === obj.label) {
         return true;
@@ -134,11 +135,18 @@ export class _Dropdown extends React.PureComponent {
     }
     return false;
   };
+  getActiveOrDisplay() {
+    const activeItems = this.props.options.filter(item => item.label === this.props.value || item.value === this.props.value);
+    return activeItems.length === 0 || activeItems.length > 1
+      ? this.props.display
+      : activeItems[0].label;
+  }
   render() {
     return (
       <div className={`dib pointer`}>
         <CustomButton onClick={this.toggleDropdown} className={`${this.props.className || ''}`}>
-          {this.props.display} <ChevronDownIcon style={{ height: '14px' }} className="pl2 v-mid" />
+          {this.getActiveOrDisplay()}{' '}
+          <ChevronDownIcon style={{ height: '14px' }} className="pl2 v-mid" />
         </CustomButton>
         {this.state.display && (
           <DropdownContent

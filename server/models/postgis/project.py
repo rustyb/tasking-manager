@@ -90,6 +90,9 @@ class Project(db.Model):
     )  # Force users to edit at random to avoid mapping "easy" tasks
     allow_non_beginners = db.Column(db.Boolean, default=False)
     private = db.Column(db.Boolean, default=False)  # Only allowed users can validate
+    featured = db.Column(
+        db.Boolean, default=False
+    )  # Only PMs can set a project as featured
     entities_to_map = db.Column(db.String)
     changeset_comment = db.Column(db.String)
     osmcha_filter_id = db.Column(
@@ -377,6 +380,18 @@ class Project(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    def set_as_featured(self):
+        if self.featured is True:
+            raise ValueError("Project is already featured")
+        self.featured = True
+        db.session.commit()
+
+    def unset_as_featured(self):
+        if self.featured is False:
+            raise ValueError("Project is not featured")
+        self.featured = False
+        db.session.commit()
+
     def can_be_deleted(self) -> bool:
         """ Projects can be deleted if they have no mapped work """
         task_count = self.tasks.filter(
@@ -465,7 +480,7 @@ class Project(db.Model):
         return stats_dto
 
     def get_project_stats(self) -> ProjectStatsDTO:
-        """ Create Project Summary model for postgis project object"""
+        """ Create Project Stats model for postgis project object"""
         project_stats = ProjectStatsDTO()
         project_stats.project_id = self.id
         project_area_sql = "select ST_Area(geometry, true)/1000000 as area from public.projects where id = :id"
@@ -575,7 +590,9 @@ class Project(db.Model):
             partial(
                 pyproj.transform,
                 pyproj.Proj(init="EPSG:4326"),
-                pyproj.Proj(proj="aea", lat1=polygon.bounds[1], lat2=polygon.bounds[3]),
+                pyproj.Proj(
+                    proj="aea", lat_1=polygon.bounds[1], lat_2=polygon.bounds[3]
+                ),
             ),
             polygon,
         )
@@ -592,6 +609,13 @@ class Project(db.Model):
         summary.organisation_tag = self.organisation_tag
         summary.status = ProjectStatus(self.status).name
         summary.entities_to_map = self.entities_to_map
+        summary.imagery = self.imagery
+
+        # Cast MappingType values to related string array
+        mapping_types_array = []
+        for mapping_type in self.mapping_types:
+            mapping_types_array.append(MappingTypes(mapping_type).name)
+        summary.mapping_types = mapping_types_array
 
         centroid_geojson = db.session.scalar(self.centroid.ST_AsGeoJSON())
         summary.aoi_centroid = geojson.loads(centroid_geojson)
@@ -621,8 +645,7 @@ class Project(db.Model):
         project_info = ProjectInfo.get_dto_for_locale(
             self.id, preferred_locale, self.default_locale
         )
-        summary.name = project_info.name
-        summary.short_description = project_info.short_description
+        summary.project_info = project_info
 
         return summary
 
@@ -685,6 +708,27 @@ class Project(db.Model):
         base_dto.author = User().get_by_id(self.author_id).username
         base_dto.active_mappers = Project.get_active_mappers(self.id)
         base_dto.task_creation_mode = TaskCreationMode(self.task_creation_mode).name
+        base_dto.percent_mapped = Project.calculate_tasks_percent(
+            "mapped",
+            self.total_tasks,
+            self.tasks_mapped,
+            self.tasks_validated,
+            self.tasks_bad_imagery,
+        )
+        base_dto.percent_validated = Project.calculate_tasks_percent(
+            "validated",
+            self.total_tasks,
+            self.tasks_mapped,
+            self.tasks_validated,
+            self.tasks_bad_imagery,
+        )
+        base_dto.percent_bad_imagery = Project.calculate_tasks_percent(
+            "bad_imagery",
+            self.total_tasks,
+            self.tasks_mapped,
+            self.tasks_validated,
+            self.tasks_bad_imagery,
+        )
 
         if self.private:
             # If project is private it should have a list of allowed users
