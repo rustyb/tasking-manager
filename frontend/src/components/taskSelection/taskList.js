@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React from 'react';
 import { FormattedMessage, FormattedRelative } from 'react-intl';
 
 import messages from './messages';
@@ -6,7 +6,7 @@ import { useFetch } from '../../hooks/UseFetch';
 import { compareTaskId, compareHistoryId } from '../../utils/sorting';
 
 function getLastTaskActivity(task, activities) {
-  return activities.filter(
+  return activities && activities.filter(
     activity => activity.taskId === task.properties.taskId
   ).filter(
     activity => activity.action === task.properties.taskStatus || activity.actionText === task.properties.taskStatus
@@ -14,7 +14,8 @@ function getLastTaskActivity(task, activities) {
 }
 
 export function TaskList({tasks, projectId}: Object) {
-  const [error, loading, touchedTasks] = useFetch(`projects/${projectId}/activities/`);
+  const [, , touchedTasks] = useFetch(`projects/${projectId}/activities/`);
+
   const activeStatus = ['MAPPED', 'VALIDATED', 'LOCKED_FOR_MAPPING', 'LOCKED_FOR_VALIDATION', 'INVALIDATED', 'BADIMAGERY'];
   console.log(tasks && tasks.features && tasks.features.filter(task => activeStatus.includes(task.properties.taskStatus)));
   return <div className="cf">

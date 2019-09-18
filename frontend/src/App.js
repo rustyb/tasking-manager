@@ -7,7 +7,7 @@ import { Header } from './components/header';
 import { Footer } from './components/footer';
 import { Home } from './views/home';
 import { AboutPage } from './views/about';
-import { ProjectsPage, ProjectsPageIndex, MoreFilters } from './views/project';
+import { ProjectsPage, ProjectsPageIndex, MoreFilters, ProjectDetailPage } from './views/project';
 import { Authorized } from './views/authorized';
 import { Login } from './views/login';
 import { Welcome } from './views/welcome';
@@ -38,6 +38,7 @@ function App() {
                 <Settings path="settings" />
                 <SelectTaskToMap path="projects/:id/map" />
                 <SelectTaskToValidate path="projects/:id/validate" />
+                <ProjectDetailPage path="projects/:id" />
                 <NotFound default />
               </Router>
             </QueryParamProvider>
