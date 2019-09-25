@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from server import create_app, initialise_counters
 from server.services.users.authentication_service import AuthenticationService
 from server.services.users.user_service import UserService
+from server.services.interests_service import InterestService
 
 
 # Load configuration from file into environment
@@ -56,6 +57,11 @@ def refresh_levels():
     print("Started updating mapper levels...")
     users_updated = UserService.refresh_mapper_level()
     print(f"Updated {users_updated} user mapper levels")
+
+
+@manager.option("-f", "--file", help="JSON file")
+def import_interests(file):
+    InterestService.load_from_file(file)
 
 
 if __name__ == "__main__":

@@ -49,6 +49,8 @@ from server.models.postgis.utils import (
     NotFound,
 )
 from server.services.grid.grid_service import GridService
+from server.models.postgis.interests import Interest, projects_interests
+
 
 # Secondary table defining many-to-many join for private projects that only defined users can map on
 project_allowed_users = db.Table(
@@ -158,6 +160,7 @@ class Project(db.Model):
         cascade="all, delete-orphan",
         single_parent=True,
     )
+    interests = db.relationship(Interest, secondary=projects_interests)
 
     def create_draft_project(self, draft_project_dto: DraftProjectDTO):
         """
@@ -853,6 +856,12 @@ class Project(db.Model):
         )
 
         return project_dto
+
+    def create_or_update_interests(self, interests_ids):
+        self.interests = []
+        objs = [Interest.get_by_id(i) for i in interests_ids]
+        self.interests.extend(objs)
+        db.session.commit()
 
 
 # Add index on project geometry

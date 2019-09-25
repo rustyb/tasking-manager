@@ -149,6 +149,7 @@ def add_api_endpoints(app):
         ProjectsActionsMessageContributorsAPI,
         ProjectsActionsFeatureAPI,
         ProjectsActionsUnFeatureAPI,
+        ProjectInterestRelationshipAPI,
     )
 
     # Tasks API import
@@ -191,6 +192,9 @@ def add_api_endpoints(app):
     # Issues API import
     from server.api.issues.resources import IssuesRestAPI, IssuesAllAPI
 
+    # Interests API import
+    from server.api.interests.resources import InterestAPI
+
     # Licenses API import
     from server.api.licenses.resources import LicensesRestAPI, LicensesAllAPI
     from server.api.licenses.actions import LicensesActionsAcceptAPI
@@ -222,6 +226,7 @@ def add_api_endpoints(app):
         UsersActionsSetRoleAPI,
         UsersActionsSetExpertModeAPI,
         UsersActionsVerifyEmailAPI,
+        UserInterestRelationshipAPI,
     )
     from server.api.users.openstreetmap import UsersOpenStreetMapAPI
     from server.api.users.statistics import UsersStatisticsAPI
@@ -307,6 +312,12 @@ def add_api_endpoints(app):
     api.add_resource(
         ProjectsActionsUnFeatureAPI,
         "/api/v2/projects/<int:project_id>/actions/remove-feature",
+    )
+
+    api.add_resource(
+        ProjectInterestRelationshipAPI,
+        "/api/v2/projects/actions/set-interests",
+        methods=["POST"],
     )
 
     # Tasks REST endpoint
@@ -477,8 +488,21 @@ def add_api_endpoints(app):
         UsersQueriesUsernameAPI, "/api/v2/users/queries/<string:username>/"
     )
 
+    api.add_resource(
+        UserInterestRelationshipAPI,
+        "/api/v2/users/queries/interests/<int:user_id>",
+        methods=["GET"],
+    )
+
     # Users Actions endpoint
     api.add_resource(UsersActionsSetUsersAPI, "/api/v2/users/actions/set-user/")
+
+    api.add_resource(
+        UserInterestRelationshipAPI,
+        "/api/v2/users/actions/set-interests",
+        endpoint="create_user_interest",
+        methods=["POST"],
+    )
 
     api.add_resource(
         UsersActionsSetLevelAPI,
@@ -534,4 +558,13 @@ def add_api_endpoints(app):
         "/api/v2/system/authentication/applications/<string:application_key>/",
         endpoint="check_application",
         methods=["PATCH"],
+    )
+    api.add_resource(
+        InterestAPI,
+        "/api/v2/interests/",
+        endpoint="create_interest",
+        methods=["POST", "GET"],
+    )
+    api.add_resource(
+        InterestAPI, "/api/v2/interests/<int:interest_id>/", methods=["PATCH", "DELETE"]
     )
