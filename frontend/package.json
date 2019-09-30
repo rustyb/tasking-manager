@@ -57,6 +57,11 @@
   "devDependencies": {
     "combine-react-intl-messages": "^2.0.2",
     "prettier": "^1.18.2",
-    "react-test-renderer": "^16.9.0"
+    "react-test-renderer": "^16.9.0",
+    "eslint": "6.4.0",
+    "eslint-loader": "3.0.2"
+  },
+  "resolutions": {
+    "eslint-loader": "3.0.2"
   }
 }
