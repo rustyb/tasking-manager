@@ -82,7 +82,9 @@ class AuthenticationService:
             # User not found, so must be new user
             changesets = osm_user.find("changesets")
             changeset_count = int(changesets.attrib["count"])
-            new_user = UserService.register_user(osm_id, username, changeset_count)
+            new_user = UserService.register_user(
+                osm_id, username, changeset_count, user_picture
+            )
             MessageService.send_welcome_message(new_user)
 
         session_token = AuthenticationService.generate_session_token_for_user(osm_id)
