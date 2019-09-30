@@ -53,3 +53,13 @@ it('test if Imagery returns the correct FormattedMessage to WMS', () => {
     testInstance.findByType('span').children
   ).toEqual(['Mapbox Satellite']);
 });
+
+it('test if Imagery returns the correct FormattedMessage to WMS', () => {
+  const element = createComponentWithIntl(
+    <Imagery value={null} />
+  );
+  const testInstance = element.root;
+  expect(
+    testInstance.findByType(FormattedMessage).props.id
+  ).toEqual('project.imagery.noDefined');
+});

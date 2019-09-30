@@ -7,6 +7,16 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { MAPBOX_TOKEN } from '../../config';
 import lock from '../../assets/img/lock.png';
 
+export const colours = {
+  'READY': '#fff',
+  'LOCKED_FOR_MAPPING': '#fff',
+  'MAPPED': '#a1d7e5',
+  'LOCKED_FOR_VALIDATION': '#a1d7e5',
+  'VALIDATED': '#6cb570',
+  'INVALIDATED': '#e6e6e6',
+  'BADIMAGERY': '#e04141',
+};
+
 mapboxgl.accessToken = MAPBOX_TOKEN;
 
 export const TasksMap = ({
@@ -75,15 +85,15 @@ export const TasksMap = ({
           'fill-color': [
             'match',
             ['get', 'taskStatus'],
-            'READY', '#fff',
-            'LOCKED_FOR_MAPPING', '#fff',
-            'MAPPED', '#a1d7e5',
-            'LOCKED_FOR_VALIDATION', '#a1d7e5',
-            'VALIDATED', '#6cb570',
-            'INVALIDATED', '#e6e6e6',
-            'BADIMAGERY', '#e04141',
+            'READY', colours.READY,
+            'LOCKED_FOR_MAPPING', colours.LOCKED_FOR_MAPPING,
+            'MAPPED', colours.MAPPED,
+            'LOCKED_FOR_VALIDATION', colours.LOCKED_FOR_VALIDATION,
+            'VALIDATED', colours.VALIDATED,
+            'INVALIDATED', colours.INVALIDATED,
+            'BADIMAGERY', colours.BADIMAGERY,
             'rgba(0,0,0,0)'
-          ],
+          ]
         }
       }, 'tasks-icon');
       map.addLayer({
@@ -123,8 +133,6 @@ export const TasksMap = ({
 
       map.on('click', 'tasks-fill', e => {
         const value = e.features && e.features[0].properties && e.features[0].properties.taskId;
-        console.log(value);
-        map.setFilter('selected-tasks-border', ['in', 'taskId'].concat(activeTasks.concat(value)));
         dispatch({
           type: 'SET_ACTIVE_TASKS',
           activeTasks: [value]
@@ -159,6 +167,7 @@ export const TasksMap = ({
     /* refill the source on mapResults changes */
     if (map !== null && map.getSource('tasks') !== undefined && someResultsReady) {
       map.getSource('tasks').setData(mapResults);
+      map.setFilter('selected-tasks-border', ['in', 'taskId'].concat(activeTasks));
     }
   }, [map, mapResults, activeProject, activeTasks, projectId, dispatch]);
 

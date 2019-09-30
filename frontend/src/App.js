@@ -21,7 +21,7 @@ function App() {
   return (
     <Location>
       {({ location }) => (
-        <div className="App w-100 base-font">
+        <div className="App w-100 base-font bg-white">
           <Header location={location} />
           <div className="cf w-100 base-font">
             <QueryParamProvider reachHistory={globalHistory}>
